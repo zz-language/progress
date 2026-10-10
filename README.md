@@ -34,6 +34,11 @@ bar.gradient(0.625, 8)  // truecolor green→yellow→red
 | `dots` | `STYLE_DOTS` | `●`/`○` |
 | `thin` | `STYLE_LINE` | `─`/`·` (const is `STYLE_LINE`) |
 | `circle` | `STYLE_CIRCLE` | quarter fills `◔◑◒◓` |
+| `squares` | `STYLE_SQUARES` | `■`/`□` download-style |
+| `spectrum` | `STYLE_SPECTRUM` | rainbow lerp |
+| `marquee` | `(tick, w, size)` | bouncing block for unknown totals |
+| `stages` | `(done, total)` | `●●●○○ 3/5` pipeline steps |
+| `transfer` | `(label, done, total, w)` | `dl [■■□□] 1|25 4.0%` download line |
 | `gradient` | `STYLE_GRADIENT` | truecolor fill + dim track |
 | `vbar` | — | vertical column, returns row strings |
 

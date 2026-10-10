@@ -14,6 +14,8 @@ pub const STYLE_DOTS:int = 6
 pub const STYLE_LINE:int = 7
 pub const STYLE_CIRCLE:int = 8
 pub const STYLE_GRADIENT:int = 9
+pub const STYLE_SQUARES:int = 10
+pub const STYLE_SPECTRUM:int = 11
 
 func clamp01(frac: float) -> float {
     if frac < 0.0 {
@@ -226,7 +228,127 @@ pub func gradient(frac: float, w: int) -> str {
     out + "]"
 }
 
-// Vertical bar: h rows, filled from the bottom.
+// Squared blocks (download-style).
+
+pub func squares(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("■", n) + rep("□", w - n) + "]"
+}
+
+// Rainbow spectrum fill (red→yellow→green→cyan→blue→magenta).
+
+pub func spectrum(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    f := clamp01(frac)
+    n := int(f * w) ?? 0
+    out := "["
+    i := 0
+    while i < w {
+        if i < n {
+            pos := 0.0
+            if w > 1 {
+                pos = 5.0 * i / (w - 1)
+            }
+            out = out + spec_cell(pos)
+        } else {
+            out = out + colors.bg_rgb(" ", 40, 40, 40)
+        }
+        i = i + 1
+    }
+    out + "]"
+}
+
+func spec_cell(h: float) -> str {
+    seg := int(h) ?? 0
+    if seg > 4 {
+        seg = 4
+    }
+    t := h - seg
+    r := 0
+    g := 0
+    b := 0
+    if seg == 0 {
+        r = int(t * 255.0) ?? 0
+        g = 255
+    } else {
+        if seg == 1 {
+            r = int((1.0 - t) * 255.0) ?? 0
+            g = 255
+        } else {
+            if seg == 2 {
+                g = 255
+                b = int(t * 255.0) ?? 0
+            } else {
+                if seg == 3 {
+                    g = int((1.0 - t) * 255.0) ?? 0
+                    b = 255
+                } else {
+                    r = int(t * 255.0) ?? 0
+                    b = 255
+                }
+            }
+        }
+    }
+    colors.bg_rgb(" ", r, g, b)
+}
+
+// Bouncing block for unknown totals (pure in tick — not a spinner,
+// a marquee bar). size cells wide shuttling across width w.
+
+pub func marquee(tick: int, w: int, size: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    s := size
+    if s < 1 {
+        s = 1
+    }
+    if s >= w {
+        return "[" + rep("█", w) + "]"
+    }
+    t := tick
+    if t < 0 {
+        t = 0
+    }
+    span := w - s
+    start := t % (span * 2)
+    if start > span {
+        start = span * 2 - start
+    }
+    "[" + rep(" ", start) + rep("█", s) + rep(" ", w - start - s) + "]"
+}
+
+// Pipeline stages: filled/total dots plus the count.
+
+pub func stages(done: int, total: int) -> str {
+    d := done
+    if d < 0 {
+        d = 0
+    }
+    if d > total {
+        d = total
+    }
+    rep("●", d) + rep("○", total - d) + " " + count(d, total)
+}
+
+// Download-style line: label, squared bar, done|total, pct.
+
+pub func transfer(label: str, done: int, total: int, w: int) -> str {
+    frac := 0.0
+    if total > 0 {
+        frac = 1.0 * done / total
+    }
+    out := squares(frac, w)
+    if label != "" {
+        out = label + " " + out
+    }
+    out + " " + str(done) + "|" + str(total) + " " + pct(frac)
+}
 
 pub func vbar(frac: float, h: int) -> [str] {
     rows := []
@@ -358,6 +480,14 @@ pub func render(o: Opts, frac: float) -> str {
                             } else {
                                 if s == 9 {
                                     b = gradient(frac, o.w)
+                                } else {
+                                    if s == 10 {
+                                        b = squares(frac, o.w)
+                                    } else {
+                                        if s == 11 {
+                                            b = spectrum(frac, o.w)
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -42,6 +42,17 @@ func readouts_pin() {
 }
 
 @test
+func image_styles_pin() {
+    assert_eq(bar.squares(0.5, 4), "[■■□□]")
+    assert_eq(bar.stages(3, 5), "●●●○○ 3/5")
+    assert_eq(bar.marquee(0, 6, 2), "[██    ]")
+    assert_eq(bar.marquee(4, 6, 2), "[    ██]")
+    assert_eq(bar.marquee(6, 6, 2), "[  ██  ]")
+    assert_eq(bar.transfer("dl", 1, 25, 4), "dl [□□□□] 1|25 4.0%")
+    assert_eq(bar.spectrum(1.0, 1), "[\e[48;2;0;255;0m \e[0m]")
+}
+
+@test
 func composer_pins() {
     o := bar.defaults()
     assert_eq(bar.render(o, 0.5), "[██████████░░░░░░░░░░] 50.0%")
