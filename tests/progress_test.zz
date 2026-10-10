@@ -60,6 +60,10 @@ func composer_pins() {
     o2.label = "dl"
     o2.count = 1
     assert_eq(bar.line(o2, 12, 48, 0), "dl [█████░░░░░░░░░░░░░░░] 25.0% 12/48")
+    o3 := bar.defaults()
+    o3.fg = 2
+    assert_eq(bar.render(o3, 1.0), "\e[38;5;2m[████████████████████]\e[0m 100.0%")
+    assert_eq(bar.paint("x", 0 - 1, 0 - 1), "x")
 }
 
 @test

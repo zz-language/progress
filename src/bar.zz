@@ -448,10 +448,33 @@ pub struct Opts {
     count: int,
     rate: int,
     eta: int,
+    fg: int,
+    bg: int,
 }
 
 pub func defaults() -> Opts {
-    Opts{label: "", style: 1, w: 20, pct: 1, count: 0, rate: 0, eta: 0}
+    Opts{label: "", style: 1, w: 20, pct: 1, count: 0, rate: 0, eta: 0, fg: 0 - 1, bg: 0 - 1}
+}
+
+// Wrap s in 256-colors (-1 leaves that layer plain).
+
+pub func paint(s: str, fg: int, bg: int) -> str {
+    out := s
+    if fg >= 0 {
+        c := fg
+        if c > 255 {
+            c = 255
+        }
+        out = "\e[38;5;{c}m" + out + "\e[0m"
+    }
+    if bg >= 0 {
+        c := bg
+        if c > 255 {
+            c = 255
+        }
+        out = "\e[48;5;{c}m" + out + "\e[0m"
+    }
+    out
 }
 
 pub func render(o: Opts, frac: float) -> str {
@@ -496,7 +519,7 @@ pub func render(o: Opts, frac: float) -> str {
             }
         }
     }
-    out := b
+    out := paint(b, o.fg, o.bg)
     if o.label != "" {
         out = o.label + " " + out
     }

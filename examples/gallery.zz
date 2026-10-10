@@ -35,6 +35,10 @@ func demo() {
     println("spin line[2]: " + spin.at(2, 2))
     println("spin arc colored: " + colors.cyan(spin.at(14, 0)))
     println("spin star colored: " + colors.yellow(spin.at(19, 4)))
+    oc := bar.defaults()
+    oc.fg = 10
+    oc.label = "colored"
+    println(bar.render(oc, 0.625))
     println(colors.green("gallery_ok"))
 }
 

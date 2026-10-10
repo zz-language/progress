@@ -66,7 +66,9 @@ println(bar.line(o, 30, 48, 2000))
 // dl [████████████░░░░░░░░] 62.5% 30/48
 ```
 
-`Opts` flags pick the readouts; `style` picks the renderer. (Import
+`Opts` flags pick the readouts; `style` picks the renderer. `fg`/`bg`
+take 256-color codes (`-1` = plain) to color the bar in one flag —
+renderers themselves stay monochrome so they work in logs and pipes. (Import
 with an alias: cross-module struct types need it.)
 
 ## Spinners
