@@ -64,6 +64,12 @@ func composer_pins() {
     o3.fg = 2
     assert_eq(bar.render(o3, 1.0), "\e[38;5;2m[████████████████████]\e[0m 100.0%")
     assert_eq(bar.paint("x", 0 - 1, 0 - 1), "x")
+    assert_eq(bar.bytes(136314880, 209715200), "130/200 MB")
+    assert_eq(bar.bytes(1536, 2048), "1.5/2 KB")
+    assert_eq(bar.bytes(30, 48), "30/48 B")
+    o4 := bar.defaults()
+    assert_eq(bar.format("%label%%bar%%pct%", o4, 24, 48, 0), "[██████████░░░░░░░░░░]50.0%")
+    assert_eq(bar.auto(o, 0.5), "[██████████░░░░░░░░░░] 50.0%")
 }
 
 @test

@@ -2,6 +2,7 @@
 // native-parity check). `live` runs one spinner; `spin` showcases all
 // nineteen for ~3 seconds; colors run through std.colors.
 import std.colors
+import std.time
 
 import progress.bar
 import progress.spin
@@ -47,6 +48,36 @@ func live() {
     println("did " + str(ms) + " ticks")
 }
 
+func sweep(name: str, style: int, fg: int) {
+    o := bar.defaults()
+    o.style = style
+    o.w = 20
+    o.fg = fg
+    i := 0
+    while i <= 10 {
+        print("\r" + name + ": " + bar.render(o, 1.0 * i / 10))
+        time.sleep_ms(20)
+        i = i + 1
+    }
+    println("")
+}
+
+func alive() {
+    sweep("blocks  ", 1, 2)
+    sweep("partial ", 2, 3)
+    sweep("shaded  ", 3, 4)
+    sweep("ascii   ", 4, 7)
+    sweep("arrow   ", 5, 5)
+    sweep("dots    ", 6, 6)
+    sweep("thin    ", 7, 8)
+    sweep("circle  ", 8, 9)
+    sweep("squares ", 10, 11)
+    sweep("spectrum", 11, 12)
+    sweep("mini    ", 12, 13)
+    sweep("gradient", 9, 14)
+    println("alive done")
+}
+
 func showcase() {
     s := 1
     while s <= 19 {
@@ -63,7 +94,11 @@ func main(args: [str]) {
         if len(args) > 0 && args[0] == "spin" {
             showcase()
         } else {
-            demo()
+            if len(args) > 0 && args[0] == "alive" {
+                alive()
+            } else {
+                demo()
+            }
         }
     }
 }

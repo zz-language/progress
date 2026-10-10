@@ -26,6 +26,12 @@ Renderers take `(frac: float, w: int)` (clamped, `w <= 0` → `"[]"`).
 | `rate` | `(done, elapsed_ms: int) -> str` | `"3.4/s"`, `"--/s"` clockless |
 | `eta` | `(done, total, elapsed_ms: int) -> str` | `"01:12"`, `"--:--"` stalled |
 | `clock` | `(ms: int) -> str` | `"01:12"`, `"--:--"` negative |
+| `bytes` | `(done, total: int) -> str` | `"130/200 MB"` auto units (B/KB/MB/GB) |
+| `paint` | `(s: str, fg, bg: int) -> str` | 256-color wrap (`-1` leaves plain) |
+| `bare` | `(o: Opts, frac) -> str` | bar only, for custom templates |
+| `format` | `(t: str, o: Opts, done, total, elapsed_ms: int) -> str` | `%label% %bar% %pct% %count% %rate% %eta% %bytes% %done% %total%` |
+| `bell` | `() -> bool` | terminal bell; false when no TTY |
+| `auto` | `(o: Opts, frac) -> str` | dumb-TERM → ascii, NO_COLOR → plain |
 | `defaults` | `() -> Opts` | label "", style blocks, w 20, pct on |
 | `render` | `(o: Opts, frac) -> str` | bar + label + pct |
 | `line` | `(o: Opts, done, total, elapsed_ms) -> str` | render + count/rate/eta per flags |

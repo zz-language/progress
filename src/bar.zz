@@ -3,6 +3,9 @@
 // Every renderer is pure: same inputs, same string, exact-string
 // tested. frac clamps to [0, 1]; w <= 0 yields "[]".
 import std.colors
+import std.env
+import std.str
+import std.term
 import std.vec
 
 pub const STYLE_BLOCKS:int = 1
@@ -16,6 +19,7 @@ pub const STYLE_CIRCLE:int = 8
 pub const STYLE_GRADIENT:int = 9
 pub const STYLE_SQUARES:int = 10
 pub const STYLE_SPECTRUM:int = 11
+pub const STYLE_MINI:int = 12
 
 func clamp01(frac: float) -> float {
     if frac < 0.0 {
@@ -350,6 +354,75 @@ pub func transfer(label: str, done: int, total: int, w: int) -> str {
     out + " " + str(done) + "|" + str(total) + " " + pct(frac)
 }
 
+// Minimalist blocks.
+
+pub func mini(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("▰", n) + rep("▱", w - n) + "]"
+}
+
+// Arrow with a throbbing head (pure in tick): >, », › cycle.
+
+pub func arrow_at(frac: float, w: int, tick: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    if n >= w {
+        return "[" + rep("=", w) + "]"
+    }
+    t := tick
+    if t < 0 {
+        t = 0
+    }
+    head := ">"
+    if t % 3 == 1 {
+        head = "»"
+    } else {
+        if t % 3 == 2 {
+            head = "›"
+        }
+    }
+    "[" + rep("=", n) + head + rep(".", w - n - 1) + "]"
+}
+
+// Byte counts with auto units ("130/200 MB", "1.5/2 KB").
+
+pub func bytes(done: int, total: int) -> str {
+    d := done
+    if d < 0 {
+        d = 0
+    }
+    (u, div) := scale(total)
+    fmt_num(1.0 * d / div) + "/" + fmt_num(1.0 * total / div) + " " + u
+}
+
+func scale(v: int) -> (str, int) {
+    if v >= 1073741824 {
+        return ("GB", 1073741824)
+    }
+    if v >= 1048576 {
+        return ("MB", 1048576)
+    }
+    if v >= 1024 {
+        return ("KB", 1024)
+    }
+    return ("B", 1)
+}
+
+// Whole numbers stay bare ("130"), fractions keep one decimal ("1.5").
+
+func fmt_num(x: float) -> str {
+    whole := int(x) ?? 0
+    if x - whole == 0.0 {
+        return str(whole)
+    }
+    fmt1(x)
+}
+
 pub func vbar(frac: float, h: int) -> [str] {
     rows := []
     if h <= 0 {
@@ -450,10 +523,39 @@ pub struct Opts {
     eta: int,
     fg: int,
     bg: int,
+    bell: int,
 }
 
 pub func defaults() -> Opts {
-    Opts{label: "", style: 1, w: 20, pct: 1, count: 0, rate: 0, eta: 0, fg: 0 - 1, bg: 0 - 1}
+    Opts{label: "", style: 1, w: 20, pct: 1, count: 0, rate: 0, eta: 0, fg: 0 - 1, bg: 0 - 1, bell: 0}
+}
+
+// Terminal bell (BEL). False when stdin is no TTY (nothing sent).
+
+pub func bell() -> bool {
+    if !term.is_tty() {
+        return false
+    }
+    print(chr(7))
+    term.flush()
+    true
+}
+
+// Auto fallback for limited terminals: dumb TERM gets the ascii
+// renderer, NO_COLOR drops the paint. Everything else untouched.
+
+pub func auto(o: Opts, frac: float) -> str {
+    o2 := o
+    if let .some(_) = env.get_var("NO_COLOR") {
+        o2.fg = 0 - 1
+        o2.bg = 0 - 1
+    }
+    if let .some(t) = env.get_var("TERM") {
+        if t == "dumb" {
+            o2.style = 4
+        }
+    }
+    render(o2, frac)
 }
 
 // Wrap s in 256-colors (-1 leaves that layer plain).
@@ -478,47 +580,7 @@ pub func paint(s: str, fg: int, bg: int) -> str {
 }
 
 pub func render(o: Opts, frac: float) -> str {
-    s := o.style
-    b := blocks(frac, o.w)
-    if s == 2 {
-        b = partial(frac, o.w)
-    } else {
-        if s == 3 {
-            b = shaded(frac, o.w)
-        } else {
-            if s == 4 {
-                b = ascii(frac, o.w)
-            } else {
-                if s == 5 {
-                    b = arrow(frac, o.w)
-                } else {
-                    if s == 6 {
-                        b = dots(frac, o.w)
-                    } else {
-                        if s == 7 {
-                            b = thin(frac, o.w)
-                        } else {
-                            if s == 8 {
-                                b = circle(frac, o.w)
-                            } else {
-                                if s == 9 {
-                                    b = gradient(frac, o.w)
-                                } else {
-                                    if s == 10 {
-                                        b = squares(frac, o.w)
-                                    } else {
-                                        if s == 11 {
-                                            b = spectrum(frac, o.w)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    b := render_bar(o.style, o.w, frac)
     out := paint(b, o.fg, o.bg)
     if o.label != "" {
         out = o.label + " " + out
@@ -529,6 +591,59 @@ pub func render(o: Opts, frac: float) -> str {
     out
 }
 
+// Bare bar without label/readouts (for custom templates).
+
+pub func bare(o: Opts, frac: float) -> str {
+    paint(render_bar(o.style, o.w, frac), o.fg, o.bg)
+}
+
+func render_bar(s: int, w: int, frac: float) -> str {
+    b := blocks(frac, w)
+    if s == 2 {
+        b = partial(frac, w)
+    } else {
+        if s == 3 {
+            b = shaded(frac, w)
+        } else {
+            if s == 4 {
+                b = ascii(frac, w)
+            } else {
+                if s == 5 {
+                    b = arrow(frac, w)
+                } else {
+                    if s == 6 {
+                        b = dots(frac, w)
+                    } else {
+                        if s == 7 {
+                            b = thin(frac, w)
+                        } else {
+                            if s == 8 {
+                                b = circle(frac, w)
+                            } else {
+                                if s == 9 {
+                                    b = gradient(frac, w)
+                                } else {
+                                    if s == 10 {
+                                        b = squares(frac, w)
+                                    } else {
+                                        if s == 11 {
+                                            b = spectrum(frac, w)
+                                        } else {
+                                            if s == 12 {
+                                                b = mini(frac, w)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    b
+}
 // Status line with counts: render() plus done/total and friends.
 
 pub func line(o: Opts, done: int, total: int, elapsed_ms: int) -> str {
@@ -546,5 +661,35 @@ pub func line(o: Opts, done: int, total: int, elapsed_ms: int) -> str {
     if o.eta == 1 {
         out = out + " " + eta(done, total, elapsed_ms)
     }
+    ring_if(o.bell, total, done)
+    out
+}
+
+func ring_if(flag: int, total: int, done: int) -> int {
+    if flag == 1 && total > 0 && done >= total && bell() {
+        return 1
+    }
+    0
+}
+
+// Custom template: %label% %bar% %pct% %count% %rate% %eta %bytes%
+// %done% %total% expand (braces would interpolate at the call site,
+// so templates use %tokens%). Anything else passes through literally.
+
+pub func format(t: str, o: Opts, done: int, total: int, elapsed_ms: int) -> str {
+    frac := 0.0
+    if total > 0 {
+        frac = 1.0 * done / total
+    }
+    out := t
+    out = str.replace(out, "%bar%", bare(o, frac))
+    out = str.replace(out, "%label%", o.label)
+    out = str.replace(out, "%pct%", pct(frac))
+    out = str.replace(out, "%count%", count(done, total))
+    out = str.replace(out, "%rate%", rate(done, elapsed_ms))
+    out = str.replace(out, "%eta%", eta(done, total, elapsed_ms))
+    out = str.replace(out, "%bytes%", bytes(done, total))
+    out = str.replace(out, "%done%", str(done))
+    out = str.replace(out, "%total%", str(total))
     out
 }
