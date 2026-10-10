@@ -1,0 +1,397 @@
+// bar — determinate progress bars.
+//
+// Every renderer is pure: same inputs, same string, exact-string
+// tested. frac clamps to [0, 1]; w <= 0 yields "[]".
+import std.colors
+import std.vec
+
+pub const STYLE_BLOCKS:int = 1
+pub const STYLE_PARTIAL:int = 2
+pub const STYLE_SHADED:int = 3
+pub const STYLE_ASCII:int = 4
+pub const STYLE_ARROW:int = 5
+pub const STYLE_DOTS:int = 6
+pub const STYLE_LINE:int = 7
+pub const STYLE_CIRCLE:int = 8
+pub const STYLE_GRADIENT:int = 9
+
+func clamp01(frac: float) -> float {
+    if frac < 0.0 {
+        return 0.0
+    }
+    if frac > 1.0 {
+        return 1.0
+    }
+    frac
+}
+
+func rep(g: str, n: int) -> str {
+    s := ""
+    i := 0
+    while i < n {
+        s = s + g
+        i = i + 1
+    }
+    s
+}
+
+// Classic block bar.
+
+pub func blocks(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("█", n) + rep("░", w - n) + "]"
+}
+
+// 1/8-cell precision with partial blocks.
+
+pub func partial(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    e := int(clamp01(frac) * w * 8) ?? 0
+    full := e / 8
+    rem := e - full * 8
+    mid := ""
+    if rem == 1 {
+        mid = "▏"
+    } else {
+        if rem == 2 {
+            mid = "▎"
+        } else {
+            if rem == 3 {
+                mid = "▍"
+            } else {
+                if rem == 4 {
+                    mid = "▌"
+                } else {
+                    if rem == 5 {
+                        mid = "▋"
+                    } else {
+                        if rem == 6 {
+                            mid = "▊"
+                        } else {
+                            if rem == 7 {
+                                mid = "▉"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    pad := w - full
+    if rem > 0 {
+        pad = pad - 1
+    }
+    "[" + rep("█", full) + mid + rep("░", pad) + "]"
+}
+
+// Quartile shading.
+
+pub func shaded(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    e := int(clamp01(frac) * w * 4) ?? 0
+    full := e / 4
+    rem := e - full * 4
+    mid := ""
+    if rem == 1 {
+        mid = "░"
+    } else {
+        if rem == 2 {
+            mid = "▒"
+        } else {
+            if rem == 3 {
+                mid = "▓"
+            }
+        }
+    }
+    pad := w - full
+    if rem > 0 {
+        pad = pad - 1
+    }
+    "[" + rep("█", full) + mid + rep("░", pad) + "]"
+}
+
+// Plain ASCII (log-safe terminals).
+
+pub func ascii(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("#", n) + rep("-", w - n) + "]"
+}
+
+// Arrow head chases the fill.
+
+pub func arrow(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    if n >= w {
+        return "[" + rep("=", w) + "]"
+    }
+    "[" + rep("=", n) + ">" + rep(".", w - n - 1) + "]"
+}
+
+// Dot matrix.
+
+pub func dots(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("●", n) + rep("○", w - n) + "]"
+}
+
+// Thin line.
+
+pub func thin(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w) ?? 0
+    "[" + rep("─", n) + rep("·", w - n) + "]"
+}
+
+// Quarter-circle fill.
+
+pub func circle(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    n := int(clamp01(frac) * w * 4) ?? 0
+    out := "["
+    i := 0
+    while i < w {
+        e := n - i * 4
+        if e >= 4 {
+            out = out + "●"
+        } else {
+            if e == 3 {
+                out = out + "◕"
+            } else {
+                if e == 2 {
+                    out = out + "◑"
+                } else {
+                    if e == 1 {
+                        out = out + "◔"
+                    } else {
+                        out = out + "○"
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    out + "]"
+}
+
+// Truecolor fill lerping green → yellow → red by position.
+
+pub func gradient(frac: float, w: int) -> str {
+    if w <= 0 {
+        return "[]"
+    }
+    f := clamp01(frac)
+    n := int(f * w) ?? 0
+    out := "["
+    i := 0
+    while i < w {
+        if i < n {
+            pos := 0.0
+            if w > 1 {
+                pos = 1.0 * i / (w - 1)
+            }
+            r := 0
+            g := 255
+            if pos < 0.5 {
+                r = int(pos * 2.0 * 255.0) ?? 0
+            } else {
+                r = 255
+                g = int((2.0 - pos * 2.0) * 255.0) ?? 0
+            }
+            out = out + colors.bg_rgb(" ", r, g, 0)
+        } else {
+            out = out + colors.bg_rgb(" ", 40, 40, 40)
+        }
+        i = i + 1
+    }
+    out + "]"
+}
+
+// Vertical bar: h rows, filled from the bottom.
+
+pub func vbar(frac: float, h: int) -> [str] {
+    rows := []
+    if h <= 0 {
+        return rows
+    }
+    n := int(clamp01(frac) * h) ?? 0
+    i := 0
+    while i < h {
+        if i < h - n {
+            rows = vec.push(rows, "░")
+        } else {
+            rows = vec.push(rows, "█")
+        }
+        i = i + 1
+    }
+    rows
+}
+
+// One-decimal float, no format-string dependency.
+
+func fmt1(x: float) -> str {
+    neg := 0
+    v := x
+    if v < 0.0 {
+        neg = 1
+        v = 0.0 - v
+    }
+    whole := int(v) ?? 0
+    tenth := int((v - whole) * 10.0) ?? 0
+    s := str(whole) + "." + str(tenth)
+    if neg == 1 {
+        s = "-" + s
+    }
+    s
+}
+
+// "62.5%".
+
+pub func pct(frac: float) -> str {
+    fmt1(clamp01(frac) * 100.0) + "%"
+}
+
+// "12/48".
+
+pub func count(done: int, total: int) -> str {
+    str(done) + "/" + str(total)
+}
+
+// Items per second, or "--/s" when clockless.
+
+pub func rate(done: int, elapsed_ms: int) -> str {
+    if elapsed_ms <= 0 {
+        return "--/s"
+    }
+    fmt1(1.0 * done * 1000.0 / elapsed_ms) + "/s"
+}
+
+func pad2(n: int) -> str {
+    if n < 10 {
+        return "0" + str(n)
+    }
+    str(n)
+}
+
+// mm:ss of ms, or "--:--" for negative input.
+
+pub func clock(ms: int) -> str {
+    if ms < 0 {
+        return "--:--"
+    }
+    s := ms / 1000
+    pad2(s / 60) + ":" + pad2(s % 60)
+}
+
+// ETA mm:ss, or "--:--" when stalled (nothing done yet).
+
+pub func eta(done: int, total: int, elapsed_ms: int) -> str {
+    if done <= 0 || elapsed_ms <= 0 {
+        return "--:--"
+    }
+    left := total - done
+    if left <= 0 {
+        return "00:00"
+    }
+    clock(elapsed_ms * left / done)
+}
+
+// Whole status line in one call. Flags pick the readouts;
+// style selects the renderer (1-9, else blocks).
+
+pub struct Opts {
+    label: str,
+    style: int,
+    w: int,
+    pct: int,
+    count: int,
+    rate: int,
+    eta: int,
+}
+
+pub func defaults() -> Opts {
+    Opts{label: "", style: 1, w: 20, pct: 1, count: 0, rate: 0, eta: 0}
+}
+
+pub func render(o: Opts, frac: float) -> str {
+    s := o.style
+    b := blocks(frac, o.w)
+    if s == 2 {
+        b = partial(frac, o.w)
+    } else {
+        if s == 3 {
+            b = shaded(frac, o.w)
+        } else {
+            if s == 4 {
+                b = ascii(frac, o.w)
+            } else {
+                if s == 5 {
+                    b = arrow(frac, o.w)
+                } else {
+                    if s == 6 {
+                        b = dots(frac, o.w)
+                    } else {
+                        if s == 7 {
+                            b = thin(frac, o.w)
+                        } else {
+                            if s == 8 {
+                                b = circle(frac, o.w)
+                            } else {
+                                if s == 9 {
+                                    b = gradient(frac, o.w)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    out := b
+    if o.label != "" {
+        out = o.label + " " + out
+    }
+    if o.pct == 1 {
+        out = out + " " + pct(frac)
+    }
+    out
+}
+
+// Status line with counts: render() plus done/total and friends.
+
+pub func line(o: Opts, done: int, total: int, elapsed_ms: int) -> str {
+    frac := 0.0
+    if total > 0 {
+        frac = 1.0 * done / total
+    }
+    out := render(o, frac)
+    if o.count == 1 {
+        out = out + " " + count(done, total)
+    }
+    if o.rate == 1 {
+        out = out + " " + rate(done, elapsed_ms)
+    }
+    if o.eta == 1 {
+        out = out + " " + eta(done, total, elapsed_ms)
+    }
+    out
+}

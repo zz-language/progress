@@ -1,0 +1,9 @@
+[package]
+name = "progress"
+version = "0.1.0"
+description = "Progress bars and spinners. Determinate bars in ten styles, tick spinners, readouts, one-call status lines."
+license = "MIT"
+category = "utilities"
+keywords = ["progress", "bar", "spinner", "loading", "eta", "cli"]
+
+[dependencies]

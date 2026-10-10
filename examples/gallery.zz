@@ -1,0 +1,42 @@
+// Gallery: every style + readout, deterministic (pipe-runnable,
+// native-parity check). `live` arg runs a short spinner demo.
+import progress.bar
+import progress.spin
+
+func demo() {
+    println("blocks:   " + bar.blocks(0.625, 8))
+    println("partial:  " + bar.partial(0.625, 8))
+    println("shaded:   " + bar.shaded(0.625, 8))
+    println("ascii:    " + bar.ascii(0.625, 8))
+    println("arrow:    " + bar.arrow(0.625, 8))
+    println("dots:     " + bar.dots(0.625, 8))
+    println("thin:     " + bar.thin(0.625, 8))
+    println("circle:   " + bar.circle(0.625, 8))
+    println("gradient: " + bar.gradient(0.625, 8))
+    println("pct: " + bar.pct(0.625) + " count: " + bar.count(30, 48))
+    println("rate: " + bar.rate(30, 2000) + " eta: " + bar.eta(30, 48, 2000))
+    o := bar.defaults()
+    println(bar.line(o, 30, 48, 2000))
+    v := bar.vbar(0.5, 4)
+    i := 0
+    while i < len(v) {
+        println("v: " + v[i])
+        i = i + 1
+    }
+    println("spin dots[0]: " + spin.at(1, 0))
+    println("spin line[2]: " + spin.at(2, 2))
+    println("gallery_ok")
+}
+
+func live() {
+    ms := spin.run("working", 1, 6, 120)
+    println("did " + str(ms) + " ticks")
+}
+
+func main(args: [str]) {
+    if len(args) > 0 && args[0] == "live" {
+        live()
+    } else {
+        demo()
+    }
+}

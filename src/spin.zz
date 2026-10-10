@@ -1,0 +1,87 @@
+// spin — tick spinners for indeterminate waits.
+//
+// Frames are pure data (`frames(style)`); `at(style, tick)` picks one;
+// `run` drives a live spinner. Styles 1-12, tick counts up forever.
+import std.time
+import std.time
+
+pub const SPIN_DOTS:int = 1
+pub const SPIN_LINE:int = 2
+pub const SPIN_ARC:int = 3
+pub const SPIN_BOUNCE:int = 4
+pub const SPIN_CLOCK:int = 5
+pub const SPIN_MOON:int = 6
+pub const SPIN_EARTH:int = 7
+pub const SPIN_BOX:int = 8
+pub const SPIN_ARROWS:int = 9
+pub const SPIN_TOGGLE:int = 10
+pub const SPIN_GROW:int = 11
+pub const SPIN_BURGER:int = 12
+
+// Frame list for a style (unknown styles fall back to dots).
+pub func frames(style: int) -> [str] {
+    if style == 2 {
+        return ["|", "/", "-", "\\"]
+    }
+    if style == 3 {
+        return ["◐", "◑", "◒", "◓"]
+    }
+    if style == 4 {
+        return ["⠁", "⠉", "⠙", "⠚", "⠂", "⠚", "⠙", "⠉"]
+    }
+    if style == 5 {
+        return ["◷", "◶", "◵", "◴"]
+    }
+    if style == 6 {
+        return ["○", "◔", "◑", "◕", "●", "◕", "◑", "◔"]
+    }
+    if style == 7 {
+        return ["🌍", "🌎", "🌏"]
+    }
+    if style == 8 {
+        return ["▖", "▘", "▝", "▗"]
+    }
+    if style == 9 {
+        return ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"]
+    }
+    if style == 10 {
+        return ["⊶", "⊷"]
+    }
+    if style == 11 {
+        return ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃", "▂"]
+    }
+    if style == 12 {
+        return ["☰", "☱", "☲", "☳", "☴", "☵", "☶", "☷"]
+    }
+    ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+}
+
+// Frame for an ever-increasing tick (negative ticks read 0).
+
+pub func at(style: int, tick: int) -> str {
+    f := frames(style)
+    t := tick
+    if t < 0 {
+        t = 0
+    }
+    f[t % len(f)]
+}
+
+// Live spinner: label + frame on one carriage-return line, redrawn
+// every interval_ms for ticks total, then a clean newline. Returns
+// ticks (so callers can chain phases).
+
+pub func run(label: str, style: int, ticks: int, interval_ms: int) -> int {
+    i := 0
+    while i < ticks {
+        print("\r" + label + " " + at(style, i) + " ")
+        ms := interval_ms
+        if ms < 0 {
+            ms = 0
+        }
+        time.sleep_ms(ms)
+        i = i + 1
+    }
+    println("")
+    ticks
+}
