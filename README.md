@@ -39,6 +39,8 @@ bar.gradient(0.625, 8)  // truecolor green→yellow→red
 | `marquee` | `(tick, w, size)` | bouncing block for unknown totals |
 | `stages` | `(done, total)` | `●●●○○ 3/5` pipeline steps |
 | `transfer` | `(label, done, total, w)` | `dl [■■□□] 1|25 4.0%` download line |
+| `mini` | `(frac, w)` | `▰`/`▱` minimalist |
+| `arrow_at` | `(frac, w, tick)` | arrow with throbbing head |
 | `gradient` | `STYLE_GRADIENT` | truecolor fill + dim track |
 | `vbar` | — | vertical column, returns row strings |
 
