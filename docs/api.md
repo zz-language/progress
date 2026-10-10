@@ -42,5 +42,6 @@ struct literals need an aliased import (`import progress.bar as bar`).
 | `at` | `(style: int, tick: int) -> str` | frame for ever-increasing tick (pure) |
 | `run` | `(label: str, style, ticks, interval_ms: int) -> int` | live `\r` loop + newline; returns ticks |
 
-Style consts `SPIN_DOTS`…`SPIN_BURGER` (1–12): dots, line, arc,
-bounce, clock, moon, earth, box, arrows, toggle, grow, burger.
+Style consts `SPIN_DOTS`…`SPIN_STAR` (1–19): dots, line, arc,
+bounce, clock, moon, earth, box, arrows, toggle, grow, burger,
+crescent, orbit, pulse, pie, diamond, sweep, star.
