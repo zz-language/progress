@@ -80,7 +80,11 @@ spin.run("working", 1, 6, 120)  // label + 6 ticks, returns ticks
 ```
 
 Styles: dots, line, arc, bounce, clock, moon, earth, box, arrows,
-toggle, grow, burger (consts `SPIN_DOTS`…`SPIN_BURGER`).
+toggle, grow, burger, crescent, orbit, pulse, pie, diamond, sweep,
+star (consts `SPIN_DOTS`…`SPIN_STAR`).
+Crescent/earth like emoji fonts; everything else is DejaVu-safe.
+
+Try them all live (~3 s): `d_zz run examples/gallery.zz spin`.
 
 ## Live loop recipe
 

@@ -17,6 +17,13 @@ pub const SPIN_ARROWS:int = 9
 pub const SPIN_TOGGLE:int = 10
 pub const SPIN_GROW:int = 11
 pub const SPIN_BURGER:int = 12
+pub const SPIN_CRESCENT:int = 13
+pub const SPIN_ORBIT:int = 14
+pub const SPIN_PULSE:int = 15
+pub const SPIN_PIE:int = 16
+pub const SPIN_DIAMOND:int = 17
+pub const SPIN_SWEEP:int = 18
+pub const SPIN_STAR:int = 19
 
 // Frame list for a style (unknown styles fall back to dots).
 pub func frames(style: int) -> [str] {
@@ -52,6 +59,27 @@ pub func frames(style: int) -> [str] {
     }
     if style == 12 {
         return ["☰", "☱", "☲", "☳", "☴", "☵", "☶", "☷"]
+    }
+    if style == 13 {
+        return ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"]
+    }
+    if style == 14 {
+        return ["┤", "┘", "┴", "└", "├", "┌", "┬", "┐"]
+    }
+    if style == 15 {
+        return ["○", "◔", "◑", "◕", "●", "◕", "◑", "◔"]
+    }
+    if style == 16 {
+        return ["○", "◔", "◑", "◕", "●"]
+    }
+    if style == 17 {
+        return ["◇", "◈", "◆", "◈"]
+    }
+    if style == 18 {
+        return ["⡿", "⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟"]
+    }
+    if style == 19 {
+        return ["✶", "✷", "✸", "✹", "✺", "✹", "✸", "✷"]
     }
     ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 }

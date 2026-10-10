@@ -1,9 +1,13 @@
 // Gallery: every style + readout, deterministic (pipe-runnable,
-// native-parity check). `live` arg runs a short spinner demo.
+// native-parity check). `live` runs one spinner; `spin` showcases all
+// nineteen for ~3 seconds; colors run through std.colors.
+import std.colors
+
 import progress.bar
 import progress.spin
 
 func demo() {
+    println(colors.bold("progress gallery"))
     println("blocks:   " + bar.blocks(0.625, 8))
     println("partial:  " + bar.partial(0.625, 8))
     println("shaded:   " + bar.shaded(0.625, 8))
@@ -29,7 +33,9 @@ func demo() {
     }
     println("spin dots[0]: " + spin.at(1, 0))
     println("spin line[2]: " + spin.at(2, 2))
-    println("gallery_ok")
+    println("spin arc colored: " + colors.cyan(spin.at(14, 0)))
+    println("spin star colored: " + colors.yellow(spin.at(19, 4)))
+    println(colors.green("gallery_ok"))
 }
 
 func live() {
@@ -37,10 +43,23 @@ func live() {
     println("did " + str(ms) + " ticks")
 }
 
+func showcase() {
+    s := 1
+    while s <= 19 {
+        _ := spin.run("style " + str(s), s, 2, 80)
+        s = s + 1
+    }
+    println("showcase done")
+}
+
 func main(args: [str]) {
     if len(args) > 0 && args[0] == "live" {
         live()
     } else {
-        demo()
+        if len(args) > 0 && args[0] == "spin" {
+            showcase()
+        } else {
+            demo()
+        }
     }
 }

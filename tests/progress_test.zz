@@ -71,4 +71,12 @@ func spinner_frames_pin() {
     assert_eq(spin.at(99, 0), "⠋")
     assert_eq(spin.at(9, 4), "→")
     assert_eq(spin.at(12, 0), "☰")
+    assert_eq(spin.at(13, 4), "🌕")
+    assert_eq(spin.at(14, 0), "┤")
+    assert_eq(spin.at(15, 4), "●")
+    assert_eq(spin.at(16, 4), "●")
+    assert_eq(spin.at(17, 2), "◆")
+    assert_eq(spin.at(18, 0), "⡿")
+    assert_eq(spin.at(19, 4), "✺")
+    assert_eq(len(spin.frames(15)), 8)
 }
